@@ -19,6 +19,7 @@ interface ChartCaptionProps {
   width?: number;
   getHref?: () => string | undefined;
   onChangeCardAndRun?: OnChangeCardAndRun | null;
+  isPinnedQuestion?: boolean;
 }
 
 const ChartCaption = ({
@@ -29,6 +30,7 @@ const ChartCaption = ({
   onChangeCardAndRun,
   getHref,
   width,
+  isPinnedQuestion,
 }: ChartCaptionProps) => {
   const title = settings["card.title"] ?? series?.[0].card.name ?? "";
   const description = settings["card.description"];
@@ -45,6 +47,7 @@ const ChartCaption = ({
 
   return (
     <ChartCaptionRoot
+      card={isPinnedQuestion ? card : undefined}
       title={title}
       description={description}
       getHref={getHref}

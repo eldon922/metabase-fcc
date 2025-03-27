@@ -5,9 +5,11 @@ import { Ellipsified } from "metabase/core/components/Ellipsified";
 import Markdown from "metabase/core/components/Markdown";
 import CS from "metabase/css/core/index.css";
 import DashboardS from "metabase/css/dashboard.module.css";
+import { PLUGIN_MODERATION } from "metabase/plugins";
 import EmbedFrameS from "metabase/public/components/EmbedFrame/EmbedFrame.module.css";
 import type { IconProps } from "metabase/ui";
-import { Tooltip } from "metabase/ui";
+import { Group, Tooltip } from "metabase/ui";
+import type { Card } from "metabase-types/api";
 
 import LegendActions from "./LegendActions";
 import {
@@ -39,9 +41,11 @@ interface LegendCaptionProps {
   actionButtons?: React.ReactNode;
   onSelectTitle?: () => void;
   width?: number;
+  card?: Card;
 }
 
 export const LegendCaption = ({
+  card,
   className,
   title,
   description,
@@ -76,19 +80,22 @@ export const LegendCaption = ({
   return (
     <LegendCaptionRoot className={className} data-testid="legend-caption">
       {icon && <LegendLabelIcon {...icon} />}
-      <LegendLabel
-        className={cx(
-          DashboardS.fullscreenNormalText,
-          DashboardS.fullscreenNightText,
-          EmbedFrameS.fullscreenNightText,
-        )}
-        href={href}
-        onClick={onSelectTitle}
-        onFocus={handleFocus}
-        onMouseEnter={handleMouseEnter}
-      >
-        <Ellipsified data-testid="legend-caption-title">{title}</Ellipsified>
-      </LegendLabel>
+      <Group gap="0.25rem" align="center">
+        <LegendLabel
+          className={cx(
+            DashboardS.fullscreenNormalText,
+            DashboardS.fullscreenNightText,
+            EmbedFrameS.fullscreenNightText,
+          )}
+          href={href}
+          onClick={onSelectTitle}
+          onFocus={handleFocus}
+          onMouseEnter={handleMouseEnter}
+        >
+          <Ellipsified data-testid="legend-caption-title">{title}</Ellipsified>
+        </LegendLabel>
+        {card && <PLUGIN_MODERATION.EntityModerationIcon card={card} filled />}
+      </Group>
       <LegendRightContent>
         {description && !shouldHideDescription(width) && (
           <Tooltip

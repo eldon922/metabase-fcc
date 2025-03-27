@@ -125,6 +125,7 @@ type VisualizationOwnProps = {
   height?: number | null;
   isAction?: boolean;
   isDashboard?: boolean;
+  isPinnedQuestion?: boolean;
   isMobile?: boolean;
   isSlow?: CardSlownessStatus;
   isVisible?: boolean;
@@ -542,6 +543,7 @@ class Visualization extends PureComponent<
       isMobile,
       isNightMode,
       isObjectDetail,
+      isPinnedQuestion,
       isPreviewing,
       isRawTable,
       isQueryBuilder,
@@ -722,6 +724,7 @@ class Visualization extends PureComponent<
                     ? this.handleOnChangeCardAndRun
                     : null
                 }
+                isPinnedQuestion={!!isPinnedQuestion}
               />
             </VisualizationHeader>
           )}
@@ -774,6 +777,7 @@ class Visualization extends PureComponent<
                   height={rawHeight}
                   hovered={hovered}
                   isDashboard={!!isDashboard}
+                  isPinnedQuestion={!!isPinnedQuestion}
                   isEditing={!!isEditing}
                   isEmbeddingSdk={isEmbeddingSdk}
                   isFullscreen={!!isFullscreen}

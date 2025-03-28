@@ -50,7 +50,7 @@ function _CartesianChart(props: VisualizationProps) {
     headerIcon,
     actionButtons,
     isQueryBuilder,
-    isPinnedQuestion,
+    labelRightSection,
     isFullscreen,
     hovered,
     onChangeCardAndRun,
@@ -143,7 +143,7 @@ function _CartesianChart(props: VisualizationProps) {
     <CartesianChartRoot isQueryBuilder={isQueryBuilder}>
       {showTitle && (
         <LegendCaption
-          card={isPinnedQuestion ? card : undefined}
+          labelRightSection={labelRightSection}
           title={settings["card.title"]}
           description={description}
           icon={headerIcon}

@@ -1,11 +1,10 @@
 import cx from "classnames";
-import { useCallback, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 
 import { Ellipsified } from "metabase/core/components/Ellipsified";
 import Markdown from "metabase/core/components/Markdown";
 import CS from "metabase/css/core/index.css";
 import DashboardS from "metabase/css/dashboard.module.css";
-import { PLUGIN_MODERATION } from "metabase/plugins";
 import EmbedFrameS from "metabase/public/components/EmbedFrame/EmbedFrame.module.css";
 import type { IconProps } from "metabase/ui";
 import { Group, Tooltip } from "metabase/ui";
@@ -42,10 +41,10 @@ interface LegendCaptionProps {
   onSelectTitle?: () => void;
   width?: number;
   card?: Card;
+  labelRightSection?: ReactNode;
 }
 
 export const LegendCaption = ({
-  card,
   className,
   title,
   description,
@@ -54,6 +53,7 @@ export const LegendCaption = ({
   actionButtons,
   onSelectTitle,
   width,
+  labelRightSection,
 }: LegendCaptionProps) => {
   /*
    * Optimization: lazy computing the href on title focus & mouseenter only.
@@ -94,7 +94,7 @@ export const LegendCaption = ({
         >
           <Ellipsified data-testid="legend-caption-title">{title}</Ellipsified>
         </LegendLabel>
-        {card && <PLUGIN_MODERATION.EntityModerationIcon card={card} filled />}
+        {labelRightSection}
       </Group>
       <LegendRightContent>
         {description && !shouldHideDescription(width) && (

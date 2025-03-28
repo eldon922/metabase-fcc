@@ -125,10 +125,10 @@ type VisualizationOwnProps = {
   height?: number | null;
   isAction?: boolean;
   isDashboard?: boolean;
-  isPinnedQuestion?: boolean;
   isMobile?: boolean;
   isSlow?: CardSlownessStatus;
   isVisible?: boolean;
+  labelRightSection?: React.ReactNode;
   metadata?: Metadata;
   mode?: ClickActionModeGetter | Mode | QueryClickActionsMode;
   query?: NativeQuery;
@@ -543,13 +543,13 @@ class Visualization extends PureComponent<
       isMobile,
       isNightMode,
       isObjectDetail,
-      isPinnedQuestion,
       isPreviewing,
       isRawTable,
       isQueryBuilder,
       isSettings,
       isShowingDetailsOnlyColumns,
       isSlow,
+      labelRightSection,
       metadata,
       mode,
       query,
@@ -724,7 +724,7 @@ class Visualization extends PureComponent<
                     ? this.handleOnChangeCardAndRun
                     : null
                 }
-                isPinnedQuestion={!!isPinnedQuestion}
+                labelRightSection={labelRightSection}
               />
             </VisualizationHeader>
           )}
@@ -777,7 +777,7 @@ class Visualization extends PureComponent<
                   height={rawHeight}
                   hovered={hovered}
                   isDashboard={!!isDashboard}
-                  isPinnedQuestion={!!isPinnedQuestion}
+                  labelRightSection={labelRightSection}
                   isEditing={!!isEditing}
                   isEmbeddingSdk={isEmbeddingSdk}
                   isFullscreen={!!isFullscreen}

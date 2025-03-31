@@ -13,6 +13,7 @@ import type {
   GetFieldValuesResponse,
   ParameterValue,
   ParameterValues,
+  StructuredQuery,
   User,
 } from "metabase-types/api";
 import { CacheDurationUnit } from "metabase-types/api";
@@ -20,7 +21,7 @@ import { CacheDurationUnit } from "metabase-types/api";
 import type { DashcardQueryResponse, DatasetResponse } from "./types";
 
 const { H } = cy;
-const { PRODUCTS_ID, PRODUCTS } = SAMPLE_DATABASE;
+const { ORDERS, ORDERS_ID, PRODUCTS_ID, PRODUCTS } = SAMPLE_DATABASE;
 const { ALL_USERS_GROUP, DATA_GROUP, COLLECTION_GROUP, READONLY_GROUP } =
   USER_GROUPS;
 

@@ -80,7 +80,7 @@
           (let [batch    (search/get-next-batch! Long/MAX_VALUE 100)
                 _        (log/trace "Processing batch" batch)
                 timer    (u/start-timer)
-                report   (search/bulk-ingest! batch)
+                report   (search/bulk-ingest! batch false)
                 duration (u/since-ms timer)]
             (when (seq report)
               (report->prometheus! duration report)

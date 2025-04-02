@@ -25,11 +25,9 @@ jobs:
       matrix: ${{ steps.matrix.outputs.config }}
       regularChunks: ${{ steps.matrix.outputs.regularChunks }}
     steps:
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
-      - name: Install glob package
-        run: npm install glob
+          node-version: lts/Jod # 22.x.x
       - uses: actions/github-script@v7
         id: matrix
         env:
@@ -59,7 +57,7 @@ jobs:
 
             // Helper to check if specs exist for a given pattern
             const hasMatchingSpecs = (pattern) => {
-              const { globSync } = require('glob');
+              const { globSync } = require('node:fs');
               return globSync(pattern).length > 0;
             };
 

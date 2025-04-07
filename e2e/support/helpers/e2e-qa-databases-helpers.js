@@ -26,7 +26,7 @@ export function addMongoDatabase(displayName = "QA Mongo") {
 export function addPostgresDatabase(
   displayName = "QA Postgres12",
   writable = false,
-  dbName = "postgres",
+  dbName,
 ) {
   // https://hub.docker.com/layers/metabase/qa-databases/postgres-sample-12/images/sha256-80bbef27dc52552d6dc64b52796ba356d7541e7bba172740336d7b8a64859cf8
   addQADatabase({

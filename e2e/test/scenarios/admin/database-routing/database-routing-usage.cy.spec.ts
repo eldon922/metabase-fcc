@@ -19,7 +19,9 @@ import {
   createDestinationDatabasesViaAPI,
 } from "./helpers/e2e-database-routing-helpers";
 
-const { ALL_USERS_GROUP, DATA_GROUP, COLLECTION_GROUP } = USER_GROUPS;
+const { ALL_USERS_GROUP, COLLECTION_GROUP } = USER_GROUPS;
+
+const LEAD_DATABASE_ID = 3;
 
 describe("admin > database > database routing", { tags: ["@external"] }, () => {
   before(() => {
@@ -40,11 +42,11 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
     // the other dbs get linked when they're added as destination dbs
     H.addPostgresDatabase("lead", false, "lead");
     configurDbRoutingViaAPI({
-      router_database_id: 3,
+      router_database_id: LEAD_DATABASE_ID,
       user_attribute: "destination_database",
     });
     createDestinationDatabasesViaAPI({
-      router_database_id: 3,
+      router_database_id: LEAD_DATABASE_ID,
       databases: [
         {
           ...BASE_POSTGRES_MIRROR_DB_INFO,
@@ -75,7 +77,7 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
   it("should route users to the correct destination database", () => {
     cy.signInAsAdmin();
     H.createNativeQuestion({
-      database: 3,
+      database: LEAD_DATABASE_ID,
       name: "Identifier Name",
       native: {
         query: "SELECT name FROM db_identifier;",
@@ -109,7 +111,7 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
   it("should not leak cached data", () => {
     cy.signInAsAdmin();
     H.createNativeQuestion({
-      database: 3,
+      database: LEAD_DATABASE_ID,
       name: "Identifier Name",
       native: {
         query: "SELECT name FROM db_identifier;",
@@ -131,6 +133,41 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
       cy.get('[data-column-id="name"]').should("contain", "destination_two");
     });
   });
+
+  it("should work with sandboxing", () => {
+    cy.signInAsAdmin();
+    H.createQuestion({
+      name: "Color",
+      database: LEAD_DATABASE_ID,
+      query: {
+        "source-table": 22,
+      },
+    }).then(({ body: { id: QUESTION_ID } }) => {
+      signInAs(DB_ROUTER_USERS.userA);
+      cy.visit(`/question/${QUESTION_ID}`);
+      cy.get('[data-column-id="name"]').should("contain", "destination_one");
+      cy.get('[data-column-id="color"]').should("contain", "blue");
+      cy.get('[data-column-id="color"]').should("contain", "red");
+
+      cy.signInAsAdmin();
+      H.blockUserGroupPermissions(ALL_USERS_GROUP, LEAD_DATABASE_ID);
+
+      cy.visit(`admin/permissions/data/group/${COLLECTION_GROUP}/database/3`);
+      H.modifyPermission("Db Identifier", 0, "Sandboxed");
+      H.modal().findByText("Pick a column").click();
+      H.popover().findByText("Color").click();
+      H.modal().findByText("Pick a user attribute").click();
+      H.popover().findByText("color").click();
+      H.modal().button("Save").click();
+      H.savePermissions();
+
+      signInAs(DB_ROUTER_USERS.userA);
+      cy.visit(`/question/${QUESTION_ID}`);
+      cy.get('[data-column-id="name"]').should("contain", "destination_one");
+      cy.get('[data-column-id="color"]').should("contain", "blue");
+      cy.get('[data-column-id="color"]').should("not.contain", "red");
+    });
+  });
 });
 
 const DB_ROUTER_USERS = {
@@ -141,14 +178,13 @@ const DB_ROUTER_USERS = {
     password: "12341234",
     login_attributes: {
       destination_database: "destination_one",
+      color: "blue",
     },
     user_group_memberships: [
       { id: ALL_USERS_GROUP, is_group_manager: false },
       { id: COLLECTION_GROUP, is_group_manager: false },
-      { id: DATA_GROUP, is_group_manager: false },
     ],
   },
-
   userB: {
     first_name: "Tom",
     last_name: "RouterB",
@@ -160,7 +196,6 @@ const DB_ROUTER_USERS = {
     user_group_memberships: [
       { id: ALL_USERS_GROUP, is_group_manager: false },
       { id: COLLECTION_GROUP, is_group_manager: false },
-      { id: DATA_GROUP, is_group_manager: false },
     ],
   },
 
@@ -172,10 +207,8 @@ const DB_ROUTER_USERS = {
     user_group_memberships: [
       { id: ALL_USERS_GROUP, is_group_manager: false },
       { id: COLLECTION_GROUP, is_group_manager: false },
-      { id: DATA_GROUP, is_group_manager: false },
     ],
   },
-
   userWrongAttribute: {
     first_name: "Bill",
     last_name: "WrongAttribute",
@@ -187,7 +220,6 @@ const DB_ROUTER_USERS = {
     user_group_memberships: [
       { id: ALL_USERS_GROUP, is_group_manager: false },
       { id: COLLECTION_GROUP, is_group_manager: false },
-      { id: DATA_GROUP, is_group_manager: false },
     ],
   },
 };
@@ -220,7 +252,8 @@ function createDbWithIdentifierTable({ dbName }: { dbName: string }) {
   };
   cy.task("connectAndQueryDB", {
     connectionConfig: dbConfig,
-    query: "CREATE TABLE IF NOT EXISTS db_identifier (name VARCHAR(50));",
+    query:
+      "CREATE TABLE IF NOT EXISTS db_identifier (name VARCHAR(50), color VARCHAR(20));",
   });
 
   cy.task("connectAndQueryDB", {
@@ -230,6 +263,11 @@ function createDbWithIdentifierTable({ dbName }: { dbName: string }) {
 
   cy.task("connectAndQueryDB", {
     connectionConfig: dbConfig,
-    query: `INSERT INTO db_identifier VALUES ('${dbName}');`,
+    query: `INSERT INTO db_identifier VALUES ('${dbName}', 'blue'), ('${dbName}', 'red');`,
+  });
+
+  cy.task("connectAndQueryDB", {
+    connectionConfig: dbConfig,
+    query: "SELECT color FROM db_identifier;",
   });
 }

@@ -1,10 +1,5 @@
 const { H } = cy;
-import {
-  QA_DB_CREDENTIALS,
-  QA_POSTGRES_PORT,
-  USER_GROUPS,
-} from "e2e/support/cypress_data";
-import type { User } from "metabase-types/api";
+import { USER_GROUPS } from "e2e/support/cypress_data";
 
 import { interceptPerformanceRoutes } from "../performance/helpers/e2e-performance-helpers";
 import {
@@ -15,8 +10,11 @@ import {
 
 import {
   BASE_POSTGRES_MIRROR_DB_INFO,
+  DB_ROUTER_USERS,
   configurDbRoutingViaAPI,
+  createDbWithIdentifierTable,
   createDestinationDatabasesViaAPI,
+  signInAs,
 } from "./helpers/e2e-database-routing-helpers";
 
 const { ALL_USERS_GROUP, COLLECTION_GROUP } = USER_GROUPS;
@@ -75,7 +73,6 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
   });
 
   it("should route users to the correct destination database", () => {
-    cy.signInAsAdmin();
     H.createNativeQuestion({
       database: LEAD_DATABASE_ID,
       name: "Identifier Name",
@@ -86,30 +83,41 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
       // Test with userA
       cy.signOut();
       signInAs(DB_ROUTER_USERS.userA);
-      cy.visit(`/question/${questionId}`);
+      H.visitQuestion(questionId);
       cy.get('[data-column-id="name"]').should("contain", "destination_one");
+      cy.get('[data-column-id="name"]').should(
+        "not.contain",
+        "destination_two",
+      );
       // Test with userB
       cy.signOut();
       signInAs(DB_ROUTER_USERS.userB);
-      cy.visit(`/question/${questionId}`);
+      H.visitQuestion(questionId);
       cy.get('[data-column-id="name"]').should("contain", "destination_two");
+      cy.get('[data-column-id="name"]').should(
+        "not.contain",
+        "destination_one",
+      );
 
       // Test with user with wrong attribute value
       cy.signOut();
       signInAs(DB_ROUTER_USERS.userWrongAttribute);
-      cy.visit(`/question/${questionId}`);
-      cy.findByText("No Mirror Database found for user attribute");
+      H.visitQuestion(questionId);
+      cy.get('[data-testid="query-visualization-root"]').findByText(
+        "No Mirror Database found for user attribute",
+      );
 
       // Test with user with no attribute
       cy.signOut();
       signInAs(DB_ROUTER_USERS.userWrongAttribute);
-      cy.visit(`/question/${questionId}`);
-      cy.findByText("No Mirror Database found for user attribute");
+      H.visitQuestion(questionId);
+      cy.get('[data-testid="query-visualization-root"]').findByText(
+        "No Mirror Database found for user attribute",
+      );
     });
   });
 
   it("should not leak cached data", () => {
-    cy.signInAsAdmin();
     H.createNativeQuestion({
       database: LEAD_DATABASE_ID,
       name: "Identifier Name",
@@ -118,33 +126,40 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
       },
     }).then(({ body: { id: questionId } }) => {
       interceptPerformanceRoutes();
-      cy.visit(`/question/${questionId}`);
+      H.visitQuestion(questionId);
       openSidebarCacheStrategyForm("question");
       durationRadioButton().click();
       saveCacheStrategyForm({ strategyType: "duration", model: "database" });
       // Test with user a
       signInAs(DB_ROUTER_USERS.userA);
-      cy.visit(`/question/${questionId}`);
+      H.visitQuestion(questionId);
       cy.get('[data-column-id="name"]').should("contain", "destination_one");
+      cy.get('[data-column-id="name"]').should(
+        "not.contain",
+        "destination_two",
+      );
       // Test with user b
       cy.signOut();
       signInAs(DB_ROUTER_USERS.userB);
-      cy.visit(`/question/${questionId}`);
+      H.visitQuestion(questionId);
       cy.get('[data-column-id="name"]').should("contain", "destination_two");
+      cy.get('[data-column-id="name"]').should(
+        "not.contain",
+        "destination_one",
+      );
     });
   });
 
   it("should work with sandboxing", () => {
-    cy.signInAsAdmin();
     H.createQuestion({
       name: "Color",
       database: LEAD_DATABASE_ID,
       query: {
         "source-table": 22,
       },
-    }).then(({ body: { id: QUESTION_ID } }) => {
+    }).then(({ body: { id: questionId } }) => {
       signInAs(DB_ROUTER_USERS.userA);
-      cy.visit(`/question/${QUESTION_ID}`);
+      cy.visit(`/question/${questionId}`);
       cy.get('[data-column-id="name"]').should("contain", "destination_one");
       cy.get('[data-column-id="color"]').should("contain", "blue");
       cy.get('[data-column-id="color"]').should("contain", "red");
@@ -162,112 +177,10 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
       H.savePermissions();
 
       signInAs(DB_ROUTER_USERS.userA);
-      cy.visit(`/question/${QUESTION_ID}`);
+      cy.visit(`/question/${questionId}`);
       cy.get('[data-column-id="name"]').should("contain", "destination_one");
       cy.get('[data-column-id="color"]').should("contain", "blue");
       cy.get('[data-column-id="color"]').should("not.contain", "red");
     });
   });
 });
-
-const DB_ROUTER_USERS = {
-  userA: {
-    first_name: "Don",
-    last_name: "RouterA",
-    email: "routerA@metabase.test",
-    password: "12341234",
-    login_attributes: {
-      destination_database: "destination_one",
-      color: "blue",
-    },
-    user_group_memberships: [
-      { id: ALL_USERS_GROUP, is_group_manager: false },
-      { id: COLLECTION_GROUP, is_group_manager: false },
-    ],
-  },
-  userB: {
-    first_name: "Tom",
-    last_name: "RouterB",
-    email: "routerB@metabase.test",
-    password: "12341234",
-    login_attributes: {
-      destination_database: "destination_two",
-    },
-    user_group_memberships: [
-      { id: ALL_USERS_GROUP, is_group_manager: false },
-      { id: COLLECTION_GROUP, is_group_manager: false },
-    ],
-  },
-
-  userNoAttribute: {
-    first_name: "Jane",
-    last_name: "NoAttribute",
-    email: "noattribute@metabase.test",
-    password: "12341234",
-    user_group_memberships: [
-      { id: ALL_USERS_GROUP, is_group_manager: false },
-      { id: COLLECTION_GROUP, is_group_manager: false },
-    ],
-  },
-  userWrongAttribute: {
-    first_name: "Bill",
-    last_name: "WrongAttribute",
-    email: "wrongattribute@metabase.test",
-    password: "12341234",
-    login_attributes: {
-      destination_database: "wrong_destination",
-    },
-    user_group_memberships: [
-      { id: ALL_USERS_GROUP, is_group_manager: false },
-      { id: COLLECTION_GROUP, is_group_manager: false },
-    ],
-  },
-};
-
-function signInAs(user: Partial<User> & { password: string }) {
-  cy.log(`Sign in as user via an API call: ${user.email}`);
-  return cy.request("POST", "/api/session", {
-    username: user.email,
-    password: user.password,
-  });
-}
-
-function createDbWithIdentifierTable({ dbName }: { dbName: string }) {
-  H.queryWritableDB(
-    `SELECT datname from pg_database WHERE datname = '${dbName}'`,
-  ).then((res: { rows: any }) => {
-    if (res.rows.length === 0) {
-      H.queryWritableDB(`CREATE DATABASE ${dbName};`);
-    }
-  });
-
-  const dbConfig = {
-    client: "pg",
-    connection: {
-      ...QA_DB_CREDENTIALS,
-      port: QA_POSTGRES_PORT,
-      name: dbName,
-      database: dbName,
-    },
-  };
-  cy.task("connectAndQueryDB", {
-    connectionConfig: dbConfig,
-    query:
-      "CREATE TABLE IF NOT EXISTS db_identifier (name VARCHAR(50), color VARCHAR(20));",
-  });
-
-  cy.task("connectAndQueryDB", {
-    connectionConfig: dbConfig,
-    query: "DELETE FROM db_identifier;",
-  });
-
-  cy.task("connectAndQueryDB", {
-    connectionConfig: dbConfig,
-    query: `INSERT INTO db_identifier VALUES ('${dbName}', 'blue'), ('${dbName}', 'red');`,
-  });
-
-  cy.task("connectAndQueryDB", {
-    connectionConfig: dbConfig,
-    query: "SELECT color FROM db_identifier;",
-  });
-}

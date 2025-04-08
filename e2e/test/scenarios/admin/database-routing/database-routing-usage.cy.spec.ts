@@ -1,12 +1,8 @@
 const { H } = cy;
 import { USER_GROUPS } from "e2e/support/cypress_data";
+import { DataPermissionValue } from "metabase/admin/permissions/types";
 
 import { interceptPerformanceRoutes } from "../performance/helpers/e2e-performance-helpers";
-import {
-  durationRadioButton,
-  openSidebarCacheStrategyForm,
-  saveCacheStrategyForm,
-} from "../performance/helpers/e2e-strategy-form-helpers";
 
 import {
   BASE_POSTGRES_MIRROR_DB_INFO,
@@ -126,10 +122,18 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
       },
     }).then(({ body: { id: questionId } }) => {
       interceptPerformanceRoutes();
-      H.visitQuestion(questionId);
-      openSidebarCacheStrategyForm("question");
-      durationRadioButton().click();
-      saveCacheStrategyForm({ strategyType: "duration", model: "database" });
+      cy.request("PUT", "api/cache", {
+        model: "question",
+        model_id: questionId,
+        strategy: {
+          refresh_automatically: false,
+          unit: "hours",
+          duration: 24,
+          type: "duration",
+        },
+      });
+      cy.request("GET", `api/cache?model=question&id=${questionId}`);
+
       // Test with user a
       signInAs(DB_ROUTER_USERS.userA);
       H.visitQuestion(questionId);
@@ -151,6 +155,8 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
   });
 
   it("should work with sandboxing", () => {
+    H.addPostgresDatabase("destination_one", false, "destination_one");
+    cy.visit(`admin/permissions/data/group/${COLLECTION_GROUP}/database/3`);
     H.createQuestion({
       name: "Color",
       database: LEAD_DATABASE_ID,
@@ -158,6 +164,17 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
         "source-table": 22,
       },
     }).then(({ body: { id: questionId } }) => {
+      cy.log("Sandboxing a destination db should have no effect");
+      H.blockUserGroupPermissions(ALL_USERS_GROUP, 6);
+      // @ts-expect-error - this isn't typed yet
+      cy.sandboxTable({
+        table_id: 23,
+        group_id: COLLECTION_GROUP,
+        attribute_remappings: {
+          color: ["dimension", ["field", 243]],
+        },
+      });
+
       signInAs(DB_ROUTER_USERS.userA);
       cy.visit(`/question/${questionId}`);
       cy.get('[data-column-id="name"]').should("contain", "destination_one");
@@ -166,15 +183,25 @@ describe("admin > database > database routing", { tags: ["@external"] }, () => {
 
       cy.signInAsAdmin();
       H.blockUserGroupPermissions(ALL_USERS_GROUP, LEAD_DATABASE_ID);
+      // @ts-expect-error - this isn't typed yet
+      cy.sandboxTable({
+        table_id: 22,
+        group_id: COLLECTION_GROUP,
+        attribute_remappings: {
+          color: ["dimension", ["field", 241]],
+        },
+      });
 
-      cy.visit(`admin/permissions/data/group/${COLLECTION_GROUP}/database/3`);
-      H.modifyPermission("Db Identifier", 0, "Sandboxed");
-      H.modal().findByText("Pick a column").click();
-      H.popover().findByText("Color").click();
-      H.modal().findByText("Pick a user attribute").click();
-      H.popover().findByText("color").click();
-      H.modal().button("Save").click();
-      H.savePermissions();
+      cy.log(
+        "Unrestricted access on the destination db should not affect sandboxing",
+      );
+      cy.updatePermissionsGraph({
+        [ALL_USERS_GROUP]: {
+          6: {
+            "view-data": DataPermissionValue.UNRESTRICTED,
+          },
+        },
+      });
 
       signInAs(DB_ROUTER_USERS.userA);
       cy.visit(`/question/${questionId}`);

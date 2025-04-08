@@ -27,6 +27,7 @@ import { SmartScalar } from "./visualizations/SmartScalar";
 import Table from "./visualizations/Table";
 import { Text } from "./visualizations/Text";
 import { WaterfallChart } from "./visualizations/WaterfallChart";
+import { FccMapExperimental } from "./visualizations/FccMapExperimental";
 
 export default function () {
   registerVisualization(Scalar);
@@ -43,6 +44,7 @@ export default function () {
   registerVisualization(ScatterPlot);
   registerVisualization(PieChart);
   registerVisualization(Map);
+  registerVisualization(FccMapExperimental);
   registerVisualization(Funnel);
   registerVisualization(ObjectDetail);
   registerVisualization(PivotTable);

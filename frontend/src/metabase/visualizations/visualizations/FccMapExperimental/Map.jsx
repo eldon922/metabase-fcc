@@ -220,6 +220,13 @@ export class FccMapExperimental extends Component {
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
     }),
+    ...fieldSetting("map.detail_data", {
+      title: t`Detail data field`,
+      fieldFilter: isAny,
+      getDefault: null,
+      getHidden: (series, vizSettings) =>
+        !PIN_MAP_TYPES.has(vizSettings["map.type"]),
+    }),
     "map.colors": {
       title: t`Color`,
       widget: ColorRangeSelector,

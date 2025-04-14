@@ -42,15 +42,42 @@ const modalStyle = {
   borderRadius: "12px",
   width: "60%",
   maxWidth: "90%",
-  maxHeight: '70vh',
-  overflowY: 'auto',
-  boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+  boxShadow: "0 2px 10px rgba(0,0,0,0.3)"
+};
+
+const modalHeader= {
+  paddingBottom: "10px",
+  borderBottom: "1px solid #000",
   position: "relative"
+};
+
+const modalBodyDataStyle = {
+  maxHeight: '70vh',
+  overflowY: 'auto'
+};
+
+const modalBodyDataContainerStyle = {
+  display:'flex'
+};
+
+const modalBodyDataColumnStyle = {
+  width:'250px',
+  height:'50px',
+  whiteSpace:'wrap',
+  paddingLeft:'10px',
+  paddingRight:'10px'
+};
+
+const modalBodyDataValueStyle= {
+  height:'50px',
+  paddingLeft:'10px',
+  paddingRight:'10px',
+  flex:1
 };
 
 const closeButtonStyle = {
   position: "absolute",
-  top: "10px",
+  top: "5px",
   right: "15px",
   background: "transparent",
   border: "none",
@@ -88,6 +115,7 @@ export default class PinMap extends Component {
       zoom: null,
       filtering: false,
       showModal: false,
+      modalData: [],
       detailData: null,
       ...this._getPoints(props),
     };
@@ -96,6 +124,9 @@ export default class PinMap extends Component {
   toggleModal = (data) => {
     this.setState(prevState => ({ 
       showModal: !prevState.showModal 
+    }));
+    this.setState(prevState => ({ 
+      modalData: [...data]
     }));
   };
 
@@ -377,16 +408,33 @@ export default class PinMap extends Component {
           {this.state.showModal && (
             <div style={overlayStyle}>
               <div style={modalStyle}>
-                <h2>Ini Modal</h2>
-                <p>Ini adalah isi dari modal.</p>
-                <button style={closeButtonStyle} onClick={this.toggleModal}>
-                  Tutup
-                </button>
+                <div style={modalHeader}>
+                  <h2>Details</h2>
+                  <button style={closeButtonStyle} onClick={()=>this.toggleModal([])}>
+                    X
+                  </button>
+                </div>
+                <div style={modalBodyDataStyle}>
+                  {
+                    this.state.modalData.map((data,index) => 
+                      <div style={modalBodyDataContainerStyle} key={index}>
+                        <div style={modalBodyDataColumnStyle}>
+                          <p>
+                            <span style={{fontWeight:"bold"}}>{data.col.name}</span>
+                          </p>
+                        </div>
+                        <div style={modalBodyDataValueStyle}>
+                          <p>{data.value}</p>
+                        </div>
+                      </div>
+                    )
+                  }
+                </div>
               </div>
             </div>
           )}
         </div>
-        
+
       </div>
     );
   }

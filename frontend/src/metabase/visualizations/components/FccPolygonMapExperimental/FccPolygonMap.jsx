@@ -252,31 +252,42 @@ export default class FccPolygonMap extends LeafletMap {
             const { cols, rows } = series[0].data;
 
             const detailIndex = cols.findIndex(item => item.name === settings["map.detail_data"])
-            let newData = []
-            let detailData = Object.entries(JSON.parse(rows[polygonData.dataIndex][detailIndex]))
-            for (let i = 0; i < detailData.length; i++) {
-              newData.push({
-                column:{
-                  name:detailData[i][0],
-                  display_name:detailData[i][0]
-                },
-                value:detailData[i][1]
+            if(detailIndex>-1){
+              let newData = []
+              let detailData = Object.entries(JSON.parse(rows[polygonData.dataIndex][detailIndex]))
+              for (let i = 0; i < detailData.length; i++) {
+                newData.push({
+                  column:{
+                    name:detailData[i][0],
+                    display_name:detailData[i][0]
+                  },
+                  value:detailData[i][1]
+                })
+              }
+  
+              const hover = {
+                dimensions: newData,
+                element: e.target._path,
+              };
+              e.target.setStyle({
+                color: 'yellow',
+                fillColor: 'yellow'
               })
+              onHoverChange(hover);
+            } else {
+              const hover = {
+                dimensions: cols.map((col, colIndex) => ({
+                  value: rows[polygonData.dataIndex] ? rows[polygonData.dataIndex][colIndex] : null,
+                  column: col,
+                })),
+                element: e.target._path,
+              };
+              e.target.setStyle({
+                color: 'yellow',
+                fillColor: 'yellow'
+              })
+              onHoverChange(hover);
             }
-
-            const hover = {
-              // dimensions: cols.map((col, colIndex) => ({
-              //   value: rows[polygonData.dataIndex] ? rows[polygonData.dataIndex][colIndex] : null,
-              //   column: col,
-              // })),
-              dimensions: newData,
-              element: e.target._path,
-            };
-            e.target.setStyle({
-              color: 'yellow',
-              fillColor: 'yellow'
-            })
-            onHoverChange(hover);
           });
   
           polygonLayer.on("mouseout", e => {
@@ -300,28 +311,28 @@ export default class FccPolygonMap extends LeafletMap {
               value: rows[polygonData.dataIndex] ? rows[polygonData.dataIndex][colIndex] : null,
             }));
             const detailIndex = cols.findIndex(item => item.name === settings["map.detail_data"])
-            let newData = []
-            let detailData = Object.entries(JSON.parse(rows[polygonData.dataIndex][detailIndex]))
-            for (let i = 0; i < detailData.length; i++) {
-              newData.push({
-                col:{
-                  name:detailData[i][0]
-                },
-                value:detailData[i][1]
-              })
+            if(detailIndex>-1){
+              let newData = []
+              let detailData = Object.entries(JSON.parse(rows[polygonData.dataIndex][detailIndex]))
+              for (let i = 0; i < detailData.length; i++) {
+                newData.push({
+                  col:{
+                    name:detailData[i][0]
+                  },
+                  value:detailData[i][1]
+                })
+              }
+              this.props.openModal(newData)
+            } else {
+              onVisualizationClick({
+                value: hasPk && rows[polygonData.dataIndex] ? rows[polygonData.dataIndex][pkIndex] : null,
+                column: hasPk ? cols[pkIndex] : null,
+                element: polygonLayer._path,
+                origin: { row: rows[polygonData.dataIndex], cols },
+                settings,
+                data,
+              });
             }
-            onHoverChange(null);
-            this.props.openModal(newData)
-
-  
-            // onVisualizationClick({
-            //   value: hasPk && rows[polygonData.dataIndex] ? rows[polygonData.dataIndex][pkIndex] : null,
-            //   column: hasPk ? cols[pkIndex] : null,
-            //   element: polygonLayer._path,
-            //   origin: { row: rows[polygonData.dataIndex], cols },
-            //   settings,
-            //   data,
-            // });
           });
         }
       });
@@ -344,20 +355,16 @@ export default class FccPolygonMap extends LeafletMap {
         const longitudeIndex = targetData.cols.findIndex(item => item.name === settings["map.longitude_column"])
         const movimentStatusIndex = targetData.cols.findIndex(item => item.name === settings["map.moviment_status_column"])
         const loadStatusIndex = targetData.cols.findIndex(item => item.name === settings["map.load_status_column"])
-        const detailIndex = targetData.cols.findIndex(item => item.name === settings["map.detail_data"])
         if(latitudeIndex>-1 && longitudeIndex>-1){
           const rowToLoop = targetData.rows
           for (let rowI = 0; rowI < rowToLoop.length; rowI++) {
             if(targetData.rows[rowI][latitudeIndex] && targetData.rows[rowI][longitudeIndex]){
-              const detailData = JSON.parse(targetData.rows[rowI][detailIndex])
               findMarkerList.push({
                 dataIndex:rowI,
                 coordinate:[
                   targetData.rows[rowI][latitudeIndex],
                   targetData.rows[rowI][longitudeIndex]
                 ],
-                // moviment_status:detailData['moviment_status'],
-                // load_status:detailData['load_status'],
                 moviment_status:targetData.rows[rowI][movimentStatusIndex] ? targetData.rows[rowI][movimentStatusIndex] : null,
                 load_status:targetData.rows[rowI][loadStatusIndex] ? targetData.rows[rowI][loadStatusIndex] : null,
               })
@@ -403,27 +410,34 @@ export default class FccPolygonMap extends LeafletMap {
             } = this.props;
 
             const detailIndex = cols.findIndex(item => item.name === settings["map.detail_data"])
-            let newData = []
-            let detailData = Object.entries(JSON.parse(rows[markerData.dataIndex][detailIndex]))
-            for (let i = 0; i < detailData.length; i++) {
-              newData.push({
-                column:{
-                  name:detailData[i][0],
-                  display_name:detailData[i][0]
-                },
-                value:detailData[i][1]
-              })
+            if(detailIndex>-1){
+              let newData = []
+              let detailData = Object.entries(JSON.parse(rows[markerData.dataIndex][detailIndex]))
+              for (let i = 0; i < detailData.length; i++) {
+                newData.push({
+                  column:{
+                    name:detailData[i][0],
+                    display_name:detailData[i][0]
+                  },
+                  value:detailData[i][1]
+                })
+              }
+  
+              const hover = {
+                dimensions: newData,
+                element: markerLayer._icon,
+              };
+              onHoverChange(hover);
+            } else {
+              const hover = {
+                dimensions: cols.map((col, colIndex) => ({
+                  value: rows[markerData.dataIndex][colIndex],
+                  column: col,
+                })),
+                element: markerLayer._icon,
+              };
+              onHoverChange(hover);
             }
-
-            const hover = {
-              // dimensions: cols.map((col, colIndex) => ({
-              //   value: rows[markerData.dataIndex][colIndex],
-              //   column: col,
-              // })),
-              dimensions: newData,
-              element: markerLayer._icon,
-            };
-            onHoverChange(hover);
           });
           markerLayer.on("mouseout", () => {
             onHoverChange(null);
@@ -431,6 +445,7 @@ export default class FccPolygonMap extends LeafletMap {
         }
         if (onVisualizationClick) {
           markerLayer.on("click", () => {
+            onHoverChange(null);
             const {
               series: [
                 {
@@ -440,36 +455,36 @@ export default class FccPolygonMap extends LeafletMap {
             } = this.props;
 
             const detailIndex = cols.findIndex(item => item.name === settings["map.detail_data"])
-            let newData = []
-            let detailData = Object.entries(JSON.parse(rows[markerData.dataIndex][detailIndex]))
-            for (let i = 0; i < detailData.length; i++) {
-              newData.push({
-                col:{
-                  name:detailData[i][0]
-                },
-                value:detailData[i][1]
-              })
+            if(detailIndex>-1){
+              let newData = []
+              let detailData = Object.entries(JSON.parse(rows[markerData.dataIndex][detailIndex]))
+              for (let i = 0; i < detailData.length; i++) {
+                newData.push({
+                  col:{
+                    name:detailData[i][0]
+                  },
+                  value:detailData[i][1]
+                })
+              }
+              this.props.openModal(newData)
+            } else {
+              const pkIndex = _.findIndex(cols, isPK);
+              const hasPk = pkIndex >= 0;
+  
+              const data = cols.map((col, index) => ({
+                col,
+                value: rows[markerData.dataIndex][index],
+              }));
+  
+              onVisualizationClick({
+                value: hasPk ? rows[markerData.dataIndex][pkIndex] : null,
+                column: hasPk ? cols[pkIndex] : null,
+                element: markerLayer._icon,
+                origin: { row: rows[markerData.dataIndex], cols },
+                settings,
+                data,
+              });
             }
-
-            onHoverChange(null);
-            this.props.openModal(newData)
-            
-            // const pkIndex = _.findIndex(cols, isPK);
-            // const hasPk = pkIndex >= 0;
-
-            // const data = cols.map((col, index) => ({
-            //   col,
-            //   value: rows[markerData.dataIndex][index],
-            // }));
-
-            // onVisualizationClick({
-            //   value: hasPk ? rows[markerData.dataIndex][pkIndex] : null,
-            //   column: hasPk ? cols[pkIndex] : null,
-            //   element: markerLayer._icon,
-            //   origin: { row: rows[markerData.dataIndex], cols },
-            //   settings,
-            //   newData,
-            // });
           });
         }
       });

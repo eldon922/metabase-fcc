@@ -175,34 +175,38 @@ export class FccMapExperimental extends Component {
       title: t`Polygon field`,
       fieldFilter: isAny,
       getDefault: null,
+      nullable: true,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
+      autoOpenWhenUnset:false,
     }),
     ...fieldSetting("map.color_column", {
       title: t`Color field`,
       fieldFilter: isAny,
       getDefault: null,
+      nullable: true,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
+      autoOpenWhenUnset:false,
     }),
     ...fieldSetting("map.type_column", {
       title: t`Type field`,
       fieldFilter: isAny,
       getDefault: null,
+      nullable: true,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
+      autoOpenWhenUnset:false,
     }),
     ...fieldSetting("map.latitude_column", {
       title: t`Latitude field`,
       fieldFilter: isNumeric,
-      getDefault: ([{ data }]) => (_.find(data.cols, isLatitude) || {}).name,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
     }),
     ...fieldSetting("map.longitude_column", {
       title: t`Longitude field`,
       fieldFilter: isNumeric,
-      getDefault: ([{ data }]) => (_.find(data.cols, isLongitude) || {}).name,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
     }),
@@ -210,22 +214,28 @@ export class FccMapExperimental extends Component {
       title: t`Moviment status field`,
       fieldFilter: isAny,
       getDefault: null,
+      nullable: true,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
+      autoOpenWhenUnset:false,
     }),
     ...fieldSetting("map.load_status_column", {
       title: t`Load status field`,
       fieldFilter: isAny,
       getDefault: null,
+      nullable: true,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
+      autoOpenWhenUnset:false,
     }),
     ...fieldSetting("map.detail_data", {
       title: t`Detail data field`,
       fieldFilter: isAny,
       getDefault: null,
+      nullable: true,
       getHidden: (series, vizSettings) =>
         !PIN_MAP_TYPES.has(vizSettings["map.type"]),
+      autoOpenWhenUnset:false,
     }),
     "map.colors": {
       title: t`Color`,

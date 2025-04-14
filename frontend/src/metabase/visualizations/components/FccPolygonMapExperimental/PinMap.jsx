@@ -86,7 +86,7 @@ const closeButtonStyle = {
 };
 
 export default class PinMap extends Component {
-  static uiName = t`FCC Map Experimental`;
+  static uiName = t`Geofence and Marker Map`;
   static identifier = "fccmapexperimental";
   static iconName = "pinmap";
 

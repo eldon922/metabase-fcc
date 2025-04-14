@@ -219,6 +219,10 @@ export function hasLatitudeAndLongitudeColumns(cols) {
   return hasLatitude && hasLongitude;
 }
 
+export function hasPolygon(cols) {
+  return true;
+}
+
 export const getIsPKFromTablePredicate = (tableId) => (column) => {
   const isPrimaryKey = isPK(column);
 

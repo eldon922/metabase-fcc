@@ -31,6 +31,7 @@ const cardDisplayTypes = [
   "funnel",
   "object",
   "map",
+  "fccmapexperimental",
   "scatter",
   "waterfall",
   "sankey",

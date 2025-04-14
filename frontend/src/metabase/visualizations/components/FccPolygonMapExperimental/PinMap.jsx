@@ -239,6 +239,12 @@ export default class PinMap extends Component {
           ]
         }
       }
+      if(row[latitudeIndex] && row[longitudeIndex]){
+        polygonList = [
+          ...polygonList,
+          [row[latitudeIndex],row[longitudeIndex]]
+        ]
+      }
     })
     const allPoints = polygonList.map(data => [
       data[0],

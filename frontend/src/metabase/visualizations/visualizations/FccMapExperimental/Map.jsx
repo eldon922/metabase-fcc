@@ -42,7 +42,7 @@ const PIN_MAP_TYPES = new Set(["pin", "heat", "grid"]);
 const isArrayField = field => field.base_type === "type/Array";
 
 export class FccMapExperimental extends Component {
-  static uiName = t`FCC Geofence Map`;
+  static uiName = t`Geofence and Marker Map`;
   static identifier = "fccmapexperimental";
   static iconName = "pinmap";
 
